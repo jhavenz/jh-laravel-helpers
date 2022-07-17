@@ -66,6 +66,17 @@ if (!function_exists('classUsesTrait')) {
     }
 }
 
+if (!function_exists('currentPageTitle')) {
+    function currentPageTitle(): string
+    {
+        $title = str(router()->currentRouteName())->endsWith('.index')
+            ? str(router()->currentRouteName())->before('.index')
+            : str(router()->currentRouteName())->after('.');
+
+        return (string)$title->title();
+    }
+}
+
 if (!function_exists('dbListen')) {
     function dbListen(): void
     {
@@ -102,13 +113,6 @@ if (!function_exists('gate')) {
     }
 }
 
-if (!function_exists('isSeeding')) {
-    function isSeeding(): bool
-    {
-        return app()['seeding'] ?? false;
-    }
-}
-
 if (!function_exists('getRandomModel')) {
     /** @deprecated - use [Model::query()->rand(...);] instead */
     function getRandomModel(Model $class, int $count = 1)
@@ -120,6 +124,21 @@ if (!function_exists('getRandomModel')) {
                 fn($q) => $q->limit($count)->get(),
                 fn($q) => $q->first()
             );
+    }
+}
+
+if (!function_exists('isSeeding')) {
+    function isSeeding(): bool
+    {
+        return app()['seeding'] ?? false;
+    }
+}
+
+if (class_exists('\Laravel\Nova\Http\Requests\NovaRequest') && !function_exists('novaRequest')) {
+    /** @return \Laravel\Nova\Http\Requests\NovaRequest */
+    function novaRequest()
+    {
+        return \Laravel\Nova\Http\Requests\NovaRequest::createFrom(request());
     }
 }
 
@@ -169,5 +188,30 @@ if (!function_exists('toIterable')) {
             is_iterable($value) => $value,
             default => [$value],
         };
+    }
+}
+
+if (!function_exists('when')) {
+    /**
+     * Can pass an iterable of predicates to $when
+     */
+    function when(bool|iterable|Closure $when, mixed $then = null, mixed $else = null): mixed
+    {
+        if (count(array_filter(func_get_args())) === 1) {
+            $then = true;
+            $else = false;
+        }
+
+        if (!is_iterable($when)) {
+            $when = [$when];
+        }
+
+        foreach ($when as $predicate) {
+            if (false === value($predicate)) {
+                return is_null($else) ? false : value($else);
+            }
+
+            return value($then);
+        }
     }
 }
