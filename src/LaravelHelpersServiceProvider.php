@@ -37,6 +37,16 @@ class LaravelHelpersServiceProvider extends PackageServiceProvider
 
             return $copy;
         });
+
+        Arr::macro('whereNotEmpty', function (array $array, bool $checkForEmptyKeys = true) {
+            return Arr::where($array, function ($item, $key) use ($checkForEmptyKeys) {
+                if ($checkForEmptyKeys && 0 !== $key && empty($key)) {
+                    return false;
+                }
+
+                return !empty($item);
+            });
+        });
     }
 
     /**
