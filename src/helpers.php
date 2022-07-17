@@ -1,5 +1,7 @@
 <?php
 
+namespace Jhavenz\LaravelHelpers;
+
 use Carbon\Carbon;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Database\Eloquent\Model;
