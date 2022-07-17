@@ -3,10 +3,12 @@
     "description": "Helper functions for any Laravel project",
     "keywords": [
         "jhavenz",
+        "support",
+        "php",
         "laravel",
         "laravel-helpers"
     ],
-    "homepage": "https://github.com/jhavenz/jhavenz-laravel-helpers",
+    "homepage": "https://github.com/jhavenz/jh-laravel-helpers",
     "license": "MIT",
     "authors": [
         {
@@ -33,7 +35,10 @@
     "autoload": {
         "psr-4": {
             "Jhavenz\\LaravelHelpers\\": "src"
-        }
+        },
+        "files": [
+            "src/Helpers/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -55,10 +60,7 @@
         "laravel": {
             "providers": [
                 "Jhavenz\\LaravelHelpers\\LaravelHelpersServiceProvider"
-            ],
-            "aliases": {
-                "LaravelHelpers": "Jhavenz\\LaravelHelpers\\LaravelHelpersFacade"
-            }
+            ]
         }
     },
     "minimum-stability": "dev",

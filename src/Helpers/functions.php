@@ -1,8 +1,9 @@
 <?php
 
-namespace Jhavenz\LaravelHelpers;
+namespace Jhavenz\LaravelHelpers\Helpers;
 
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\MySqlConnection;
@@ -16,8 +17,8 @@ use Illuminate\Support\Facades\Gate as GateFacade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
-if (!function_exists('allTableNames')) {
-    function allTableNames(?string $connection = null): array
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\allTableNames')) {
+    function allTableNames(?string $connection = null, bool $includeMigrationsTable = false): array
     {
         $schema = Schema::connection($connection = ($connection ?: config('database.default')));
 
@@ -25,7 +26,7 @@ if (!function_exists('allTableNames')) {
         /** @var array $tables */
         $tables = $schema->getAllTables();
 
-        return match ($cType = get_class($schema->getConnection())) {
+        $tables = match ($cType = get_class($schema->getConnection())) {
             SQLiteConnection::class, SqlServerConnection::class => Arr::pluck($tables, 'name'),
             PostgresConnection::class => $tables['tablename'],
             MySqlConnection::class => array_reduce($tables, function ($carry, $item) use ($connection) {
@@ -41,25 +42,23 @@ if (!function_exists('allTableNames')) {
                 "Unknown connection type when getting table listing: [{$cType}]"
             )
         };
+
+        if ($includeMigrationsTable) {
+            return $tables;
+        }
+
+        return array_values(array_diff($tables, ['migrations']));
     }
 }
 
-if (!function_exists('carbon')) {
-    /**
-     * Carbon instance helper
-     *
-     * @param null $parseString
-     * @param null $tz
-     *
-     * @return Carbon
-     */
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\carbon')) {
     function carbon($parseString = null, $tz = null): Carbon
     {
         return new Carbon($parseString, $tz);
     }
 }
 
-if (!function_exists('classUsesTrait')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\classUsesTrait')) {
     function classUsesTrait($class): bool
     {
         $uses = array_flip(class_uses_recursive(is_string($class) ? app($class) : $class));
@@ -68,7 +67,7 @@ if (!function_exists('classUsesTrait')) {
     }
 }
 
-if (!function_exists('currentPageTitle')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\currentPageTitle')) {
     function currentPageTitle(): string
     {
         $title = str(router()->currentRouteName())->endsWith('.index')
@@ -79,7 +78,7 @@ if (!function_exists('currentPageTitle')) {
     }
 }
 
-if (!function_exists('dbListen')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\dbListen')) {
     function dbListen(): void
     {
         DB::listen(function ($query) {
@@ -91,7 +90,7 @@ if (!function_exists('dbListen')) {
     }
 }
 
-if (!function_exists('enforceString')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\enforceString')) {
     function enforceString($input, bool $asBoolean = false, $errorMessage = null): bool
     {
         if (!is_string($input)) {
@@ -108,14 +107,14 @@ if (!function_exists('enforceString')) {
     }
 }
 
-if (!function_exists('gate')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\gate')) {
     function gate(): Gate
     {
         return GateFacade::getFacadeRoot();
     }
 }
 
-if (!function_exists('getRandomModel')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\getRandomModel')) {
     /** @deprecated - use [Model::query()->rand(...);] instead */
     function getRandomModel(Model $class, int $count = 1)
     {
@@ -129,14 +128,16 @@ if (!function_exists('getRandomModel')) {
     }
 }
 
-if (!function_exists('isSeeding')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\isSeeding')) {
     function isSeeding(): bool
     {
         return app()['seeding'] ?? false;
     }
 }
 
-if (class_exists('\Laravel\Nova\Http\Requests\NovaRequest') && !function_exists('novaRequest')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\novaRequest') && class_exists(
+        '\Laravel\Nova\Http\Requests\NovaRequest'
+    )) {
     /** @return \Laravel\Nova\Http\Requests\NovaRequest */
     function novaRequest()
     {
@@ -144,21 +145,21 @@ if (class_exists('\Laravel\Nova\Http\Requests\NovaRequest') && !function_exists(
     }
 }
 
-if (!function_exists('rescueQuietly')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\rescueQuietly')) {
     function rescueQuietly(callable $try, ?callable $catch = null)
     {
         return rescue($try, $catch, false);
     }
 }
 
-if (!function_exists('router')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\router')) {
     function router(): Router
     {
         return Route::getFacadeRoot();
     }
 }
 
-if (!function_exists('setIsSeeding')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\setIsSeeding')) {
     function setIsSeeding(bool $seeding = true): void
     {
         app()->singleton('isSeeding', function () use ($seeding) {
@@ -167,7 +168,7 @@ if (!function_exists('setIsSeeding')) {
     }
 }
 
-if (!function_exists('tableColumns')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\tableColumns')) {
     function tableColumns(string $tableName, ?string $connection = null): array
     {
         $connection = $connection ?? config('database.default');
@@ -176,14 +177,14 @@ if (!function_exists('tableColumns')) {
     }
 }
 
-if (!function_exists('tableHasColumn')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\tableHasColumn')) {
     function tableHasColumn(string $tableName, string $columnName, ?string $connection = null): bool
     {
         return in_array($columnName, tableColumns($tableName, $connection), true);
     }
 }
 
-if (!function_exists('toIterable')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\tableHasColumn')) {
     function toIterable(mixed $value): iterable
     {
         return match (true) {
@@ -193,13 +194,13 @@ if (!function_exists('toIterable')) {
     }
 }
 
-if (!function_exists('when')) {
+if (!function_exists('Jhavenz\LaravelHelpers\Helpers\tableHasColumn')) {
     /**
      * Can pass an iterable of predicates to $when
      */
     function when(bool|iterable|Closure $when, mixed $then = null, mixed $else = null): mixed
     {
-        if (count(array_filter(func_get_args())) === 1) {
+        if (func_num_args() === 1) {
             $then = true;
             $else = false;
         }
@@ -212,8 +213,8 @@ if (!function_exists('when')) {
             if (false === value($predicate)) {
                 return is_null($else) ? false : value($else);
             }
-
-            return value($then);
         }
+
+        return value($then);
     }
 }
